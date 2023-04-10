@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+  efrei-projet-archi-db:
+    image: postgres
+    volumes:
+      - /data/docker/efrei-projet-archi/db:/var/lib/postgresql/data
+      - /data/docker/efrei-projet-archi/pg-init-scripts:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_MULTIPLE_DATABASES: projet_archi_users,projet_archi_reservations
+    networks:
+      - homelab
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == neptune
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    networks:
+      - homelab
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == neptune
+
+  users-service:
+    image: ghcr.io/zareix/efrei-projet-archi-users-service
+    environment:
+      DATABASE_URL: postgresql://user:password@efrei-projet-archi-db:5432/projet_archi_users?schema=public
+    depends_on:
+      - efrei-projet-archi-db
+      - rabbitmq
+    networks:
+      - homelab
+    deploy:
+      labels:
+        - traefik.http.routers.users.rule=Host(`efrei-projet-archi-users.zrx.sh`)
+        - traefik.http.services.users.loadbalancer.server.port=80
+        - traefik.http.routers.users.middlewares=homelab-whitelist@file
+        - traefik.http.routers.users.tls=true
+        - traefik.http.routers.users.tls.certresolver=production
+        - traefik.http.routers.users.tls.domains[0].main=zrx.sh
+        - traefik.http.routers.users.tls.domains[0].sans=*.zrx.sh
+      placement:
+        constraints:
+          - node.hostname == neptune
+
+  reservations-service:
+    image: ghcr.io/zareix/efrei-projet-archi-reservations-service
+    environment:
+      DATABASE_URL: postgresql://user:password@efrei-projet-archi-db:5432/projet_archi_reservations?schema=public
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      USER_SERVICE_API_URL: http://users-service:8000
+    depends_on:
+      - efrei-projet-archi-db
+      - rabbitmq
+    networks:
+      - homelab
+    deploy:
+      labels:
+        - traefik.http.routers.reservations.rule=Host(`efrei-projet-archi-reservations.zrx.sh`)
+        - traefik.http.services.reservations.loadbalancer.server.port=80
+        - traefik.http.routers.reservations.middlewares=homelab-whitelist@file
+        - traefik.http.routers.reservations.tls=true
+        - traefik.http.routers.reservations.tls.certresolver=production
+        - traefik.http.routers.reservations.tls.domains[0].main=zrx.sh
+        - traefik.http.routers.reservations.tls.domains[0].sans=*.zrx.sh
+      placement:
+        constraints:
+          - node.hostname == neptune
+
+networks:
+  homelab:
+    external: true
