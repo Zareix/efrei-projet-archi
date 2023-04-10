@@ -1,4 +1,4 @@
-name: '[Docker]'
+name: '[Docker] users-service'
 
 on:
   push:
@@ -9,7 +9,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}-users-service
 
 jobs:
-  build-discord:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
