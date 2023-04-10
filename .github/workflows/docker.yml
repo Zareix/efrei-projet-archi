@@ -34,7 +34,7 @@ jobs:
           platforms: linux/amd64 #,linux/arm64
           push: true
           tags: |
-            ghcr.io/zareix/efrei-projet-archi/users-service:latest
+            ghcr.io/zareix/efrei-projet-archi-users:latest
 
       - name: Build and push reservations-service docker image
         uses: docker/build-push-action@v3
@@ -43,4 +43,4 @@ jobs:
           platforms: linux/amd64 #,linux/arm64
           push: true
           tags: |
-            ghcr.io/zareix/efrei-projet-archi/reservations-service:latest
+            ghcr.io/zareix/efrei-projet-archi-reservations:latest
