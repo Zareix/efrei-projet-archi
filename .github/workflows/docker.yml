@@ -27,20 +27,20 @@ jobs:
           username: zareix
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push docker image
+      - name: Build and push users-service docker image
         uses: docker/build-push-action@v3
         with:
           context: users-service
           platforms: linux/amd64 #,linux/arm64
           push: true
           tags: |
-            ghcr.io/zareix/users-service:latest
+            ghcr.io/zareix/efrei-projet-archi/users-service:latest
 
-      - name: Build and push docker image
+      - name: Build and push reservations-service docker image
         uses: docker/build-push-action@v3
         with:
           context: reservations-service
           platforms: linux/amd64 #,linux/arm64
           push: true
           tags: |
-            ghcr.io/zareix/reservations-service:latest
+            ghcr.io/zareix/efrei-projet-archi/reservations-service:latest
